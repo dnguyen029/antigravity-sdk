@@ -142,14 +142,16 @@ def get_policies_for_role(agent_role: str):
     def is_broad_grep_search(args):
         path_arg = args.get("SearchPath") or ""
         query_arg = args.get("Query") or ""
-        if path_arg in ["/", "/home/dnguyen029/antigravity-project", "/home/dnguyen029/antigravity-project/"]:
+        current_dir = os.getcwd()
+        if path_arg in ["/", current_dir, current_dir + "/"]:
             if query_arg in ["", "*", ".*"] or len(query_arg) < 2:
                 return True
         return False
 
     def is_broad_list_directory(args):
         path_arg = args.get("DirectoryPath") or args.get("path") or args.get("SearchDirectory") or ""
-        if path_arg in ["/", "/home", "/home/dnguyen029", "/home/dnguyen029/"]:
+        user_home = os.path.expanduser("~")
+        if path_arg in ["/", "/home", user_home, user_home + "/"]:
             return True
         return False
 
@@ -246,7 +248,7 @@ def load_from_workspace(cls, agent_role: str, **kwargs):
     policies = get_policies_for_role(agent_role)
     
     # Restrict to workspace directories
-    workspace_path = "/home/dnguyen029/antigravity-project"
+    workspace_path = os.getcwd()
     workspaces = [workspace_path]
     
     config_args = {
@@ -278,7 +280,8 @@ def load_agent_instructions(role: str) -> str:
     if not filename:
         raise ValueError(f"Unknown agent role: {role}")
     
-    path = os.path.join(".agents", "agents", filename)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(script_dir, "agents", filename)
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
