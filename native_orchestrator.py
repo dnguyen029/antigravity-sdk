@@ -286,13 +286,14 @@ def load_agent_instructions(role: str) -> str:
         return f.read()
 
 class SwarmOrchestrator:
-    def __init__(self, task_description: str):
+    def __init__(self, task_description: str, mock_mode: bool = False):
         self.task_description = task_description
         self.plan_path = "implementation_plan.md"
         self.task_path = "task.md"
         self.walkthrough_path = "walkthrough.md"
         self.approved = False
         self.memory_context = ""
+        self.mock_mode = mock_mode
 
     def _update_live_status(self, phase: str, active_agent: str, status_msg: str):
         """Helper to update agent_live.md with the current task phase and a Mermaid diagram."""
@@ -338,10 +339,113 @@ This dashboard displays the active execution phase and handoff flows of the Anti
         except Exception as e:
             logger.warning(f"Failed to write swarm status update: {e}")
 
+    async def _execute_mock_workflow(self):
+        """Runs a simulated multi-agent swarm workflow for dry-run/mock demonstration."""
+        logger.info("📋 [MOCK MODE] Simulating database queries...")
+        await asyncio.sleep(1.5)
+        self.memory_context = "=== MOCK TASK WISDOM ===\n[Mock Lesson]: Local dry-run executed successfully.\n\n=== GENERAL GUIDELINES ===\nUse simple, clean patterns."
+
+        # Planning phase
+        logger.info("Writing implementation plan using Architect agent (Simulated)...")
+        self._update_live_status("Planning", "Architect", "📋 Phase 2: Planning (Drafting implementation plan)")
+        await asyncio.sleep(1.5)
+        
+        self._update_live_status("Correction", "Orchestrator", "🔄 Self-Correction Loop (Attempt 1/3: Validating plan)")
+        await asyncio.sleep(1.0)
+        
+        mock_plan = f"""# Implementation Plan - Mock Demo [APPROVED]
+
+This is a simulated implementation plan generated in mock demo mode.
+
+## Root Cause Analysis
+*   **Visible Symptoms**: User is running the SDK in mock/dry-run mode.
+*   **Technical Root Cause**: Mock mode was explicitly requested to demonstrate SDK capabilities.
+*   **Permanent Resolution**: Emulate a full swarm trajectory without calling live APIs.
+
+## Proposed Changes
+### Mock Component
+#### [NEW] mock_demo_file.txt
+This is a placeholder file simulating a codebase edit.
+
+## Verification Plan
+- Verify that the simulation completed successfully.
+"""
+        with open(self.plan_path, "w", encoding="utf-8") as f:
+            f.write(mock_plan)
+            
+        mock_task = """# Task Tracking
+
+- [x] Run simulation setup
+- [ ] Implement mock files
+- [ ] Verify execution outputs
+"""
+        with open(self.task_path, "w", encoding="utf-8") as f:
+            f.write(mock_task)
+
+        # Approval Gate
+        logger.info(f"🛑 [APPROVAL GATE] Please review {self.plan_path}.")
+        self._update_live_status("Approval", "Orchestrator", "🛑 Phase 2: Planning (Waiting for User Approval)")
+        
+        user_input = await asyncio.to_thread(input, "Approve plan and authorize execution? (yes/no): ")
+        if user_input.strip().lower() in ["yes", "y"]:
+            self.approved = True
+        else:
+            logger.warning("Plan rejected. Halting execution.")
+            return
+
+        logger.info("💻 [PHASE 3: EXECUTION] Spawning Builder to implement code changes (Simulated)...")
+        self._update_live_status("Execution", "Builder", "💻 Phase 3: Execution (Implementing code)")
+        await asyncio.sleep(2.0)
+        
+        # Write the mock demo file
+        with open("mock_demo_file.txt", "w", encoding="utf-8") as f:
+            f.write("This is a simulated file created during SDK mock execution.\n")
+            
+        mock_task_finished = """# Task Tracking
+
+- [x] Run simulation setup
+- [x] Implement mock files
+- [x] Verify execution outputs
+"""
+        with open(self.task_path, "w", encoding="utf-8") as f:
+            f.write(mock_task_finished)
+
+        # Compile validation
+        logger.info("⚙️ [SYNTAX CHECK] Compiling Python files (Simulated)...")
+        await asyncio.sleep(1.0)
+
+        # Verification
+        logger.info("🛡️ [PHASE 4: VERIFICATION] Spawning Auditor to verify changes (Simulated)...")
+        self._update_live_status("Verification", "Librarian", "🛡️ Phase 4: Verification (Validating changes)")
+        await asyncio.sleep(1.5)
+        
+        mock_walkthrough = """# Walkthrough - Mock Demo
+
+This document records the results of the simulated multi-agent swarm.
+
+## Changes Made
+- Simulated Discovery, Planning, Execution, and Verification.
+- Created `mock_demo_file.txt` in the root workspace.
+
+## Verification Result
+- Swarm workflow completed successfully in dry-run mode.
+"""
+        with open(self.walkthrough_path, "w", encoding="utf-8") as f:
+            f.write(mock_walkthrough)
+
+        logger.info("🎉 Swarm execution workflow successfully completed!")
+        self._update_live_status("Success", "Librarian", "🎉 Success (Swarm workflow successfully completed!)")
+
     async def execute_workflow(self):
+
         """Standardized async agent runner executing Discovery, Planning, and Verification stages."""
         logger.info("🔍 [PHASE 1: DISCOVERY] Initializing native workspace validation...")
         self._update_live_status("Discovery", "Librarian", "🔍 Phase 1: Discovery (Querying memory)")
+        
+        if self.mock_mode:
+            await self._execute_mock_workflow()
+            return
+
         if not os.path.exists(".env"):
             raise FileNotFoundError("Missing environment credentials (.env file).")
             
@@ -517,11 +621,18 @@ This dashboard displays the active execution phase and handoff flows of the Anti
         self._update_live_status("Success", "Librarian", "🎉 Success (Swarm workflow successfully completed!)")
 
 async def main():
-    if len(sys.argv) < 2:
-        print("Usage: python native_orchestrator.py \"<task description>\"")
+    import argparse
+    parser = argparse.ArgumentParser(description="Antigravity Swarm CLI Runner")
+    parser.add_argument("task", type=str, nargs="?", help="Description of the task for the swarm to execute.")
+    parser.add_argument("--mock", action="store_true", help="Run the workflow in simulated dry-run mode.")
+    
+    args = parser.parse_args()
+    
+    if not args.task:
+        parser.print_help()
         sys.exit(1)
-    task = sys.argv[1]
-    orchestrator = SwarmOrchestrator(task)
+        
+    orchestrator = SwarmOrchestrator(args.task, mock_mode=args.mock)
     await orchestrator.execute_workflow()
 
 if __name__ == "__main__":
