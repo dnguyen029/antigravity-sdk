@@ -1,5 +1,6 @@
 {
-  "venv": ".venv",
+  "venvPath": "/home/dnguyen029",
+  "venv": "venv",
   "pythonVersion": "3.11",
   "pythonPlatform": "Linux",
   "include": [

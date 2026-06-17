@@ -16,7 +16,6 @@ This repository contains the standalone, terminal-based multi-agent Python SDK s
     *   Builder (`builder.txt`)
     *   Auditor (`auditor.txt`)
     *   SRE (`sre.txt`)
-    *   Receptionist & Router (`receptionist.txt`, `router.txt`, `faq_receptionist.txt`, `wismo_receptionist.txt`)
     *   Librarian (`librarian.txt`)
 
 ---

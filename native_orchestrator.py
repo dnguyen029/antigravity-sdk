@@ -15,25 +15,16 @@ import logging
 import asyncio
 from google.antigravity import Agent, LocalAgentConfig, types
 from google.antigravity.hooks import policy
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, AliasChoices
 from typing import Optional, Dict, List
+from dotenv import load_dotenv
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("native_orchestrator")
 
-def load_env():
-    """Load env variables from .env if present."""
-    env_path = ".env"
-    if os.path.exists(env_path):
-        with open(env_path, "r") as f:
-            for line in f:
-                stripped = line.strip()
-                if stripped and not stripped.startswith("#") and "=" in stripped:
-                    key, val = stripped.split("=", 1)
-                    os.environ[key.strip()] = val.strip()
-
-load_env()
+# Load environment variables
+load_dotenv()
 
 # ==========================================
 # 📋 PYDANTIC SCHEMAS FOR CONFIGURATION
@@ -43,22 +34,23 @@ class McpServerConfig(BaseModel):
     args: List[str] = Field(default_factory=list)
     env: Dict[str, str] = Field(default_factory=dict)
     
-    serverUrl: Optional[str] = None
-    url: Optional[str] = None
-    serverURL: Optional[str] = None
+    url: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("url", "serverUrl", "serverURL")
+    )
     headers: Dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_server_type(self) -> "McpServerConfig":
-        has_remote = any([self.serverUrl, self.url, self.serverURL])
+        has_remote = self.url is not None
         has_command = self.command is not None
         
         if not has_remote and not has_command:
-            raise ValueError("An MCP server configuration must have either a 'command' or a remote URL ('serverUrl', 'url', or 'serverURL').")
+            raise ValueError("An MCP server configuration must have either a 'command' or a remote URL.")
         return self
         
     def get_url(self) -> Optional[str]:
-        return self.serverUrl or self.url or self.serverURL
+        return self.url
 
 def load_mcp_servers(agent_role: str | None = None):
     """Load and parse workspace MCP servers."""
@@ -89,10 +81,18 @@ def load_mcp_servers(agent_role: str | None = None):
             
             # Map API keys from env to Authorization headers if not already set
             if "Authorization" not in headers:
+                token_val = None
                 for k, v in env_vars.items():
                     if "API_KEY" in k or "TOKEN" in k or k == "SUPABASE_ACCESS_TOKEN":
-                        headers["Authorization"] = f"Bearer {v}"
+                        token_val = v
                         break
+                if not token_val:
+                    for k in ["SUPABASE_ACCESS_TOKEN", "EXA_API_KEY", "GEMINI_API_KEY"]:
+                        if k in os.environ:
+                            token_val = os.environ[k]
+                            break
+                if token_val:
+                    headers["Authorization"] = f"Bearer {token_val}"
                         
             if "supabase" in name or "supabase.com" in url:
                 if "Authorization" not in headers or not headers.get("Authorization"):
@@ -447,20 +447,26 @@ This dashboard displays the active execution phase and handoff flows of the Anti
 
         # Compile validation
         logger.info("⚙️ [SYNTAX CHECK] Compiling Python files...")
-        import glob
         import py_compile
         
         validation_failed = False
         failed_file = ""
         error_msg = ""
         
-        for file in glob.glob("*.py") + glob.glob("tools/*.py"):
-            try:
-                py_compile.compile(file, doraise=True)
-            except py_compile.PyCompileError as e:
-                validation_failed = True
-                failed_file = file
-                error_msg = str(e)
+        ignore_dirs = {".venv", "venv", ".git", "__pycache__"}
+        for root, dirs, files in os.walk("."):
+            dirs[:] = [d for d in dirs if d not in ignore_dirs]
+            for file in files:
+                if file.endswith(".py"):
+                    full_path = os.path.join(root, file)
+                    try:
+                        py_compile.compile(full_path, doraise=True)
+                    except py_compile.PyCompileError as e:
+                        validation_failed = True
+                        failed_file = full_path
+                        error_msg = str(e)
+                        break
+            if validation_failed:
                 break
 
         # Verification Phase & Rollback Gate
@@ -469,8 +475,23 @@ This dashboard displays the active execution phase and handoff flows of the Anti
             self._update_live_status("Rollback", "Librarian", f"⚠️ Verification Failed: Reverting changes due to compilation error in {failed_file}")
             
             # Execute automated rollback (exclude native_orchestrator.py to preserve code fixes)
-            logger.info("Reverting modified Python files to last stable state...")
-            os.system("git checkout -- main.py verify_mcp_connections.py tools/*.py")
+            logger.info("Reverting modified files to last stable state...")
+            import subprocess
+            try:
+                result = subprocess.run(
+                    ["git", "diff", "--name-only"],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                modified_files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
+                exempt_files = {"native_orchestrator.py", ".env", "mcp_config.json"}
+                files_to_revert = [f for f in modified_files if os.path.basename(f) not in exempt_files]
+                if files_to_revert:
+                    logger.info(f"Reverting files: {files_to_revert}")
+                    subprocess.run(["git", "checkout", "--"] + files_to_revert, check=True)
+            except Exception as rollback_err:
+                logger.error(f"Failed to execute rollback: {rollback_err}")
             
             logger.error("Swarm execution halted and rolled back.")
             sys.exit(1)

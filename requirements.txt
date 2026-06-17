@@ -1,6 +1,7 @@
 # Google Antigravity SDK
-google-adk==1.35.0
+google-antigravity>=0.1.0
 
 # Schema Validation and Core Utils
 pydantic>=2.0.0
 python-dotenv>=1.0.0
+
