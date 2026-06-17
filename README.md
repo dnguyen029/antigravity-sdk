@@ -52,8 +52,15 @@ Ensure you have `mcp_config.json` in your running directory to authorize Model C
 
 ## 💻 Run Swarm Workflows
 
-To run a governed swarm task through the native orchestrator, execute:
+### 1. Simulated Dry-Run (No Credentials Required)
+To evaluate the multi-agent execution flow immediately without configuring any environment variables or API keys, run in mock mode:
+```bash
+python native_orchestrator.py "your task description here" --mock
+```
+This simulated run executes local mock routines for each phase, prompts for user approval in the terminal, and updates the local visual monitor.
 
+### 2. Live Run (Requires Cloud Setup)
+Once your `.env` and `mcp_config.json` configurations are set up, trigger the live autonomous swarm:
 ```bash
 python native_orchestrator.py "your task description here"
 ```

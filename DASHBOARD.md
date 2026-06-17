@@ -30,7 +30,10 @@ The orchestrator enforces strict execution boundaries to maintain codebase stabi
 
 ---
 
-## ⚡ Task Board
+## ⚡ Task Board & Simulation Mode
 *   **Active Checklist**: [task.md](file:///home/dnguyen029/antigravity-sdk/task.md) *(Generated dynamically on run)*
 *   **Swarm Walkthrough**: [walkthrough.md](file:///home/dnguyen029/antigravity-sdk/walkthrough.md) *(Generated dynamically on run)*
 *   **Live Swarm Monitor**: [agent_live.md](file:///home/dnguyen029/antigravity-sdk/agent_live.md) *(View real-time agent activity)*
+
+> [!TIP]
+> **Mock Demo Mode**: Running the orchestrator with the `--mock` flag simulates all execution stages, writes dummy implementation tasks, and drives the `agent_live.md` monitor state graph locally, allowing clients to test and preview the swarm's visual tracking systems out of the box.
