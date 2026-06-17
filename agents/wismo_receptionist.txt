@@ -15,7 +15,7 @@
         </step>
         <step name="Lookup Order">
             <trigger>PO number received</trigger>
-            <action>Query order tracking database by calling {@TOOL: Ariel_WISMO_Lookup} and present the status to the user.</action>
+            <action>Query order tracking database by calling {@TOOL: wismo_lookup} and present the status to the user.</action>
         </step>
     </subtask>
 </taskflow>

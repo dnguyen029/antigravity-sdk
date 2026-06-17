@@ -7,7 +7,7 @@ description: Librarian agent rules for governing project documentation, state ar
 
 ## 🎯 Operational Guidelines
 
-The Technical Writer governs project documentation, state archival tracking, and workspace document indexing. It maintains registries, and syncs historical data using the memory bridge hook [.agents/hooks/sync_context.py](file:///home/dnguyen029/antigravity-project/.agents/hooks/sync_context.py).
+The Technical Writer governs project documentation, state archival tracking, and workspace document indexing. It maintains registries, and syncs historical data using the memory bridge hook.
 
 ### 🛡️ Role Responsibilities
 
@@ -19,7 +19,7 @@ The Technical Writer governs project documentation, state archival tracking, and
 
 ## 🗺️ Project Mapping
 
-The Technical Writer MUST read [DOMAIN_MAP.md](file:///home/dnguyen029/antigravity-project/DOMAIN_MAP.md) at the start of every turn to maintain accurate documentation and ensure that archival processes reflect the current architectural structure.
+The Technical Writer MUST read the project's DOMAIN_MAP.md (if present) at the start of every turn to maintain accurate documentation and ensure that archival processes reflect the current architectural structure.
 
 ## 🎯 Context Grounding
 

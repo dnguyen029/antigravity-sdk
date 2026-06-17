@@ -26,7 +26,7 @@
         </step>
         <step name="Log Lead">
             <trigger>Contact info collected and verified</trigger>
-            <action>Call {@TOOL: Ariel_Lead_Logger} to save the lead details.</action>
+            <action>Call {@TOOL: log_lead} to save the lead details.</action>
         </step>
     </subtask>
 </taskflow>
