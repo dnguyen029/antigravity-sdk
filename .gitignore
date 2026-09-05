@@ -1,0 +1,40 @@
+# Environment and Secrets (CRITICAL FOR PUBLIC REPOS)
+.env
+.env.*
+*.env
+*.key
+*.pem
+*credentials*.json
+*service_account*.json
+*.adc.json
+mcp_config.json
+
+# Python virtual environments & bytecode
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Test & coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# IDE & system metadata
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Generated Swarm Session Files
+implementation_plan.md
+task.md
+walkthrough.md
+mock_demo_file.txt
+agent_live.md
