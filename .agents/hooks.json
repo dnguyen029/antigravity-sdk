@@ -1,0 +1,42 @@
+{
+  "safety-gate": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .agents/hooks/safety_gate.py"
+          }
+        ]
+      }
+    ]
+  },
+  "quality-gate": {
+    "PostToolUse": [
+      {
+        "matcher": "write_file|edit_file|write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .agents/hooks/bundle_quality_gate.py"
+          }
+        ]
+      }
+    ]
+  },
+  "session-lifecycle": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python3 .agents/hooks/bundle_pre_invocation.py"
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 .agents/hooks/bundle_teardown.py"
+      }
+    ]
+  }
+}
