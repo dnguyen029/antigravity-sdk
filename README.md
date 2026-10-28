@@ -25,7 +25,12 @@ flowchart TD
     Orchestrator <-->|"Live Docs & RCA"| Researcher["Researcher Agent<br/>Context7, Modern Web Guidance & Google Dev Knowledge"]
     
     Orchestrator -->|"Dispatch Approved Plan (SHA-256 Locked)"| Builder["Builder Agent<br/>Gemini 3.5 Flash<br/>Doc-Grounded Code Synthesis"]
-    Builder -->|"PostToolUse Hook (Ruff & Pytest)"| Auditor["Auditor Agent<br/>Gemini 3.5 Flash<br/>Security Hardening & QA Audit"]
+    Builder --> PreTool{"PreToolUse Hook<br/>Doc Lookup, Plan Hash & Safety Valid?"}
+    PreTool -->|"Denied (Backoff)"| Escalation(["Halt & Escalate to User"])
+    PreTool -->|"Allowed"| PostTool{"PostToolUse Hook<br/>Ruff Lint, Link Audit & Pytest Pass?"}
+    PostTool -->|"Fail (Under 3 Strikes)"| Builder
+    PostTool -->|"Fail (3 Strikes)"| Rollback["Automated Git Rollback<br/>Restore Clean State"] --> Escalation
+    PostTool -->|"Pass"| Auditor["Auditor Agent<br/>Gemini 3.5 Flash<br/>Security Hardening & QA Audit"]
     Auditor -->|"Deploy & Validate"| SRE["SRE Agent<br/>Gemini 3.5 Flash Low<br/>Environment Alignment & Runtime Health"]
     SRE -->|"Stop Hook & Archival"| Librarian["Librarian Agent<br/>Gemini 3.5 Flash Low<br/>Supabase Vector Memory Archival"]
 
