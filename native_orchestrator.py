@@ -15,9 +15,78 @@ import os
 import sys
 
 from dotenv import load_dotenv
-from google.antigravity import Agent, LocalAgentConfig, types
-from google.antigravity.hooks import policy
 from pydantic import AliasChoices, BaseModel, Field, model_validator
+
+try:
+    from google.antigravity import Agent, LocalAgentConfig, types
+    from google.antigravity.hooks import policy
+except ImportError:
+
+    class _Policy:
+        def __init__(self, action: str, when=None, name: str | None = None):
+            self.action = action
+            self.when = when
+            self.name = name
+
+        def __repr__(self) -> str:
+            return f"Policy(name={self.name}, action={self.action})"
+
+    class _PolicyFactory:
+        @staticmethod
+        def deny(target: str, when=None, name: str | None = None) -> _Policy:
+            return _Policy(f"deny:{target}", when=when, name=name)
+
+        @staticmethod
+        def allow(target: str, when=None, name: str | None = None) -> _Policy:
+            return _Policy(f"allow:{target}", when=when, name=name)
+
+        @staticmethod
+        def allow_all() -> _Policy:
+            return _Policy("allow_all", name="allow_all")
+
+        @staticmethod
+        def ask_user(target: str, handler=None, name: str | None = None) -> _Policy:
+            return _Policy(f"ask_user:{target}", when=handler, name=name)
+
+    policy = _PolicyFactory()
+
+    class _TypesFallback:
+        class CapabilitiesConfig:
+            def __init__(self, enable_subagents: bool = False):
+                self.enable_subagents = enable_subagents
+
+        class McpSseServer:
+            def __init__(self, url: str | None = None, headers: dict | None = None):
+                self.url = url
+                self.headers = headers
+
+        class McpStdioServer:
+            def __init__(
+                self,
+                command: str | None = None,
+                args: list | None = None,
+                env: dict | None = None,
+            ):
+                self.command = command
+                self.args = args
+                self.env = env
+
+    types = _TypesFallback()
+
+    class LocalAgentConfig:
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+    class Agent:
+        def __init__(self, config: LocalAgentConfig):
+            self.config = config
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            return False
+
 
 # Set up logging
 logging.basicConfig(

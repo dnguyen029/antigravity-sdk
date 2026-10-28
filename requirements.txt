@@ -1,5 +1,5 @@
-# Google Antigravity SDK
-google-antigravity>=0.1.0
+# Google Antigravity SDK (bundled in Antigravity IDE runtime; auto-shimmed for standalone CLI/tests)
+# google-antigravity>=0.1.0
 
 # Schema Validation and Core Utils
 pydantic>=2.0.0

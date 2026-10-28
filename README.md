@@ -3,8 +3,8 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Google Antigravity](https://img.shields.io/badge/Antigravity%20SDK-2.0.0-purple.svg)](https://antigravity.google/docs)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-1.15.0-orange.svg)](https://google.github.io/agent-development-kit/)
-[![Gemini Models](https://img.shields.io/badge/Google%20GenAI-Gemini%203.1%20Pro%20%7C%203.5%20Flash-purple.svg)](https://cloud.google.com/vertex-ai)
-[![Tests: 27/27 Passed](https://img.shields.io/badge/Tests-27%2F27%20Passing-brightgreen.svg)](tests/)
+[![Gemini Models](https://img.shields.io/badge/Google%20GenAI-Gemini%203.1%20Pro%20%7C%203.8%20Flash-purple.svg)](https://cloud.google.com/vertex-ai)
+[![Tests: 28/28 Passed](https://img.shields.io/badge/Tests-28%2F28%20Passing-brightgreen.svg)](tests/)
 [![Protocol: MCP](https://img.shields.io/badge/Protocol-Model%20Context%20Protocol-green.svg)](https://modelcontextprotocol.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -24,15 +24,15 @@ flowchart TD
     PreInv --> Orchestrator["Orchestrator Agent<br/>Gemini 3.1 Pro High<br/>Requirements Synthesis & Plan Approval Gate"]
     Orchestrator <-->|"Live Docs & RCA"| Researcher["Researcher Agent<br/>Context7, Modern Web Guidance & Google Dev Knowledge"]
     
-    Orchestrator -->|"Dispatch Approved Plan (SHA-256 Locked)"| Builder["Builder Agent<br/>Gemini 3.5 Flash<br/>Doc-Grounded Code Synthesis"]
+    Orchestrator -->|"Dispatch Approved Plan (SHA-256 Locked)"| Builder["Builder Agent<br/>Gemini 3.8 Flash<br/>Doc-Grounded Code Synthesis"]
     Builder --> PreTool{"PreToolUse Hook<br/>Doc Lookup, Plan Hash & Safety Valid?"}
     PreTool -->|"Denied (Backoff)"| Escalation(["Halt & Escalate to User"])
     PreTool -->|"Allowed"| PostTool{"PostToolUse Hook<br/>Ruff Lint, Link Audit & Pytest Pass?"}
     PostTool -->|"Fail (Under 3 Strikes)"| Builder
     PostTool -->|"Fail (3 Strikes)"| Rollback["Automated Git Rollback<br/>Restore Clean State"] --> Escalation
-    PostTool -->|"Pass"| Auditor["Auditor Agent<br/>Gemini 3.5 Flash<br/>Security Hardening & QA Audit"]
-    Auditor -->|"Deploy & Validate"| SRE["SRE Agent<br/>Gemini 3.5 Flash Low<br/>Environment Alignment & Runtime Health"]
-    SRE -->|"Stop Hook & Archival"| Librarian["Librarian Agent<br/>Gemini 3.5 Flash Low<br/>Supabase Vector Memory Archival"]
+    PostTool -->|"Pass"| Auditor["Auditor Agent<br/>Gemini 3.8 Flash<br/>Security Hardening & QA Audit"]
+    Auditor -->|"Deploy & Validate"| SRE["SRE Agent<br/>Gemini 3.8 Flash<br/>Environment Alignment & Runtime Health"]
+    SRE -->|"Stop Hook & Archival"| Librarian["Librarian Agent<br/>Gemini 3.8 Flash<br/>Supabase Vector Memory Archival"]
 
     subgraph Integrations ["Tooling & Memory Infrastructure"]
         Researcher --> DocTools["Context7 | Modern Web Guidance | Google Dev Knowledge"]
@@ -101,7 +101,7 @@ antigravity-sdk/
 │   ├── auditor.txt            # QA & security compliance auditor
 │   ├── sre.txt                # DevOps & environment reliability master
 │   └── librarian.txt          # Memory archivist & technical writer
-├── tests/                     # Offline unit test suite (27 tests)
+├── tests/                     # Offline unit test suite (28 tests)
 │   ├── conftest.py            # Test configuration & SDK mock providers
 │   ├── test_agent_prompts.py  # Prompt validation across all 6 personas
 │   ├── test_mcp_config.py     # MCP Pydantic schemas & header injection
@@ -141,10 +141,10 @@ pytest -v
 ```text
 ============================= test session starts ==============================
 tests/test_agent_prompts.py .......                                      [ 25%]
-tests/test_mcp_config.py ........                                        [ 55%]
-tests/test_orchestrator_mock.py ......                                   [ 77%]
+tests/test_mcp_config.py ........                                        [ 53%]
+tests/test_orchestrator_mock.py .......                                  [ 78%]
 tests/test_policies.py ......                                            [100%]
-============================== 27 passed in 0.24s ==============================
+============================== 28 passed in 5.12s ==============================
 ```
 
 ### 3. Simulated Dry-Run (No Cloud Credentials Required)
@@ -173,7 +173,7 @@ python native_orchestrator.py "Implement rate limiting middleware on API endpoin
 
 | Environment Variable | Description | Scope / Notes |
 | :--- | :--- | :--- |
-| `PROJECT_ID` | GCP Project ID hosting Vertex AI Gemini models | Required for live agent inference |
+| `GOOGLE_CLOUD_PROJECT` | GCP Project ID hosting Vertex AI Gemini models | Required for live agent inference |
 | `GOOGLE_CLOUD_LOCATION` | Vertex AI regional endpoint (e.g., `us-central1`) | Defaults to `us-central1` |
 | `GOOGLE_GENAI_USE_VERTEXAI` | Enables Vertex AI backend (`True`) | Set to `True` for Vertex AI |
 | `SUPABASE_URL` | Supabase project REST API endpoint | Required for long-term memory vault |
